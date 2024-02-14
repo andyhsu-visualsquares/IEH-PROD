@@ -85,7 +85,9 @@ define(['N/record', 'N/https', 'N/url', 'N/error', 'N/log', 'N/search', '../../D
                     for (let i = 0; i < payment_ids.length; i++) {
                         // record.submitFields({ type: "customerpayment", id: payment_ids[i], values: { customer : tranCustomer } })
                         let paymentRec = record.load({ type: 'customerpayment', id: payment_ids[i], isDynamic: true, })
+                        const payment_account_id = paymentRec.getValue('account')
                         paymentRec.setValue('customer', tranCustomer)
+                        paymentRec.setValue('account', payment_account_id)
                         let related_invoice_id = newRecord.id
                         let related_invoice_index = paymentRec.findSublistLineWithValue({ sublistId: 'apply', fieldId: 'internalid', value: related_invoice_id })
                         paymentRec.selectLine({ sublistId: "apply", line: related_invoice_index })
