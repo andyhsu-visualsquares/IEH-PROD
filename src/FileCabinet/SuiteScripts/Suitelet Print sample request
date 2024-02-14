@@ -1,0 +1,113 @@
+function Suitelet_Printsamplerequest(request, response)
+{
+	var recId = request.getParameter('id');
+
+	//var templateId = '337424';//Sandbox
+	var templateId = '342877';//Production
+	nlapiLogExecution('debug','templateId',templateId);
+	var template = nlapiLoadFile(templateId);
+	var content = template.getValue();
+	var record = nlapiLoadRecord('customrecord_samplerequest',recId);
+	
+	var record = nlapiLoadRecord('customrecord_samplerequest', recId);
+    var RequestDate = record.getFieldValue('custrecord_requestdate');
+	var Requester = record.getFieldText('custrecord_requester');
+	var RequestPurpose = nlapiEscapeXML(ifnull(record.getFieldText('custrecordrequestpurposeid')));
+	var Remarks = nlapiEscapeXML(ifnull(record.getFieldValue('custrecord_remarks')));
+	var RelatedCustomer = nlapiEscapeXML(ifnull(record.getFieldText('custrecord_relatedcustomer')));
+	var Completed = record.getFieldValue('Completed');
+	var RelatedInventoryAdjustment = record.getFieldText('custrecord_related_ivt');
+	
+	
+	
+	var subsidiary = record.getFieldValue('custrecord_subsidiary');
+	var recSubsid = nlapiLoadRecord('subsidiary',subsidiary);
+	var logoID = recSubsid.getFieldValue('logo');
+	nlapiLogExecution('debug','logoID',logoID);
+	var file = nlapiLoadFile(logoID);
+    var ImgURL = nlapiEscapeXML(file.getURL());
+	
+	var renderer = nlapiCreateTemplateRenderer();
+	renderer.setTemplate(content);
+	renderer.addRecord('record',record);
+	var renderPDF = renderer.renderToString();
+	
+	var logoHtml = '';
+	logoHtml += '<img src="';
+	logoHtml += ImgURL;
+	logoHtml += '" height="60%" width="60%" />' 
+	// if (logoHtml)
+	{
+		nlapiLogExecution('debug','logoHtml',logoHtml);
+		renderPDF = renderPDF.replace('<!--$Logo-->',logoHtml);
+	}
+	
+	var ApprovalHtml = '';
+	var Approval = record.getFieldValue('custrecordsamplerequestapproved');
+	if(Approval != 'T')
+	
+	{
+		ApprovalHtml += 'Pending Approval';
+		nlapiLogExecution('debug','ApprovalHtml',ApprovalHtml);
+		renderPDF = renderPDF.replace('<!--APPROVAL-->',ApprovalHtml);
+	}
+	
+	
+	
+	var itemTableHtml = '';
+	var IngCount = record.getLineItemCount('recmachcustrecord_sampleid');
+	nlapiLogExecution('debug', 'IngCount', IngCount);
+	
+	
+	itemTableHtml += '<table  border="1" style="width: 100%; margin-top: 10px;"><!-- start items -->';
+    itemTableHtml += '<thead>';
+	itemTableHtml += '<tr>';
+    itemTableHtml += '<th align="center" colspan="4" style="font-family: MHei;border-right: 1px solid #000000;border-bottom: 1px solid rgb(0, 0, 0);">Item</th>';
+	itemTableHtml += '<th align="center" colspan="1" style="font-family: MHei;border-right: 1px solid #000000;border-bottom: 1px solid rgb(0, 0, 0);">Unit</th>';
+    itemTableHtml += '<th align="center" colspan="1" style="font-family: MHei;border-bottom: 1px solid rgb(0, 0, 0);">Quantity</th>';
+	itemTableHtml += '</tr>';                                                   
+    itemTableHtml += '</thead>';
+
+	
+	for (var x = 1; x <= IngCount; x ++)
+	{
+			itemTableHtml += '<tr>';
+			itemTableHtml += '<td colspan="4" style="font-family: STSong, MSung, MHei, HeiseiMin, hygothic, san-serif;border-right: 1px solid #000000;border-bottom: 1px solid rgb(0, 0, 0);">';
+			itemTableHtml += nlapiEscapeXML(record.getLineItemText('recmachcustrecord_sampleid', 'custrecord_item',x));
+			itemTableHtml += '</td>';
+			itemTableHtml += '<td colspan="1" align="center" style="font-family: MHei;border-right: 1px solid #000000;border-bottom: 1px solid rgb(0, 0, 0);">';
+			itemTableHtml += record.getLineItemText('recmachcustrecord_sampleid', 'custrecord_uint',x);
+			itemTableHtml += '</td>';
+            itemTableHtml += '<td colspan="1" align="center" style="font-family: MHei;border-bottom: 1px solid rgb(0, 0, 0);">';
+			itemTableHtml += record.getLineItemValue('recmachcustrecord_sampleid', 'custrecord_quantity',x);
+			itemTableHtml += '</td>';
+	        itemTableHtml += '</tr>';
+	}
+	itemTableHtml += '</table>';
+	
+	// if (logoHtml)
+	{
+		nlapiLogExecution('debug','itemTableHtml',itemTableHtml);
+		renderPDF = renderPDF.replace('<!--$ITEMTABLE-->',itemTableHtml);
+	}
+	
+	
+	
+	
+	
+	
+	nlapiLogExecution('debug','xml',renderPDF);
+	nlapiLogExecution('debug', 'XML Finished');
+	var file = nlapiXMLToPDF(renderPDF);
+	response.setContentType('PDF',record.getFieldValue('id')+'.pdf', 'inline');
+	response.write(file.getValue());
+}
+
+function ifnull(string)
+{
+	if (string == 'null' || string == '' || string == null)
+	{
+		string = '';
+	}
+	return string;
+}

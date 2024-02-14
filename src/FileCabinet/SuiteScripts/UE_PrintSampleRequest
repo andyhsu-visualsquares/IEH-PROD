@@ -1,0 +1,60 @@
+function UE_Printsamplerequest(type)
+{
+	if(type == 'view')
+	{
+		var context = nlapiGetContext();
+		var roleId = context.getRoleId();
+		var role = context.getRole();
+		// nlapiLogExecution('debug', 'role', role);
+		// nlapiLogExecution('debug', 'roleId', roleId);
+		
+		//1110 1085 / 1002 1012 1031 / 1019 1109 1003 1018 1100 1099
+		
+		form.setScript('customscript_ue_printsamplerequest');
+		if(role == 3 || role == 1110 || role == 1085 || role == 1002 || role == 1012 || role == 1031 || role == 1019 || role == 1110 || role == 1109 || role == 1003 || role == 1100 || role == 1099 || role == 5)
+		{
+			if (nlapiGetFieldValue('custrecordsamplerequestapproved') != 'T')
+			{
+				form.setScript('customscriptcs_refreshcache');
+				form.addButton('custpage_Add','Approve',"fxn_Approve();");
+			}
+		}
+		//1048 1045 1046 1042 1041 1024 1039 1047 1030 1014 
+		//1043 1040 1044 1060 1061 1066 1067 1062 1011 1058 1064 
+		//1029 1022 1063 1059 1065 1070 1076 1077 1071 1072 1010 
+		//1068 1074 1021 1009 1073 1069 1075
+		if(role == 3 || role == 1048 || role == 1045 || role == 1046 || role == 1042 || role == 1041 || role == 1024 || role == 1039 || role == 1047 || role == 1030 || role == 1014 
+		 || role == 1043 || role == 1040 || role == 1044 || role == 1060 || role == 1061 || role == 1066 || role == 1067 || role == 1062 || role == 1011 || role == 1058 || role == 1064 
+		 || role == 1029 || role == 1022 || role == 1063 || role == 1059 || role == 1065 || role == 1070 || role == 1076 || role == 1077 || role == 1071 || role == 1072 || role == 1010 
+		 || role == 1068 || role == 1074 || role == 1021 || role == 1009 || role == 1073 || role == 1069 || role == 1075)
+		{
+			if (nlapiGetFieldValue('custrecord_completed') != 'T' && nlapiGetFieldValue('custrecordsamplerequestapproved') == 'T')
+			{
+				form.addButton('custpage_Add','Complete',"fxn_Complete();");
+			}
+		}
+		form.addButton('custpage_Add1','Print Sample Request',"fxn_printsamplerequest();");
+	}
+}
+
+function fxn_printsamplerequest()
+{
+	var URL = nlapiResolveURL('SUITELET','customscript_printsamplerequest','customdeploy1',false);
+	URL += '&id=' + nlapiGetRecordId();
+	newWindow = window.open(URL);
+}
+
+function fxn_Complete()
+{
+	nlapiLogExecution('debug', 'Complete Clicked');
+	var URL = nlapiResolveURL('SUITELET','customscriptsuitelet_completesamplereque','customdeploysuitelet_completesamplereque',false);
+	URL += '&id=' + nlapiGetRecordId();
+	newWindow = window.open(URL);	
+}
+
+function fxn_Approve()
+{
+	nlapiLogExecution('debug', 'Approve Clicked');
+	nlapiSubmitField('customrecord_samplerequest',nlapiGetRecordId(),'custrecordsamplerequestapproved','T');
+	RefreshCache();
+}

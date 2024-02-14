@@ -1,0 +1,4 @@
+function CS_SetTranDateBlank(type){
+	nlapiSetFieldValue('trandate', '');
+	return true;
+}
