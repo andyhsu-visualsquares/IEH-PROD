@@ -6,260 +6,6 @@ function Schedule_POS_to_NS()
 	
 }
 
-function Schedule_POS_Member_GetChanges_J()
-{	
-	Logout();
-	var LoginRes = Login();
-	nlapiLogExecution("debug","LoginRes",LoginRes);
-	// CheckError();
-	
-	//Product_AddNew_J
-	// var url = "http://ieh.softether.net:8888/erunapi/api.asmx/Member_GetChanges_J";
-	var url = "https://ithpos.app/erunapi/api.asmx/Member_GetChanges_J";
-	
-	// var url = "https://eruntestapi.free.beeceptor.com/api.asmx/Member_GetChanges_J";
-	// var header = {"Content-Type": "application/json"};
-	var header = {"Content-Type": "application/x-www-form-urlencoded","cookie": LoginRes};
-
-	var requestBody = {};
-	
-	var lastSyncDateTime = nlapiLookupField('customrecordintegrationlib',1,'custrecordintegrationlibdate');
-    for (var xx = 2; xx >= 0; xx--) 
-	{	
-		// var lastSyncDateTime = nlapiLookupField('customrecordintegrationlib',1,'custrecordintegrationlibdate');
-		var lastSyncDateTime = GetDateKeyyyyymmddLastXDay(xx) + ' 00:00:01';
-		var lastSyncDateTimeDateEnd = GetDateKeyyyyymmddLastXDay(xx - 1) + ' 23:59:00';
-		
-		
-		var today = new Date();
-		var now = GetDateKey(today);
-		// nlapiLogExecution("debug","now",now);
-		var endtime = GetDateKeyDateEnd(lastSyncDateTime);
-		var starttime = GetDateKeyDateStart(lastSyncDateTime);
-		// requestBody.vBeginTime = lastSyncDateTime;
-		var requestBody = 'vBeginTime=' + lastSyncDateTime + '&vEndTime=' + lastSyncDateTimeDateEnd;
-		//
-		nlapiLogExecution("audit","requestBody.vBeginTime",lastSyncDateTime);
-		nlapiLogExecution("audit","requestBodyJSON",JSON.stringify(requestBody));
-		nlapiLogExecution("audit","requestBody",requestBody);
-		// var response = nlapiRequestURL(url,JSON.stringify(requestBody),header,'POST');
-		var response = nlapiRequestURL(url,requestBody,header,'POST');
-		// var response = nlapiRequestURL(url,JSON.stringify(requestBody),header,'POST');
-		var ResponseBody = response.getBody();
-		nlapiLogExecution("debug","ResponseBody",(ResponseBody));
-		
-		
-		
-		if (ResponseBody != '{"d":""}')
-		{
-			// datain = JSON.parse(ResponseBody);
-			// nlapiLogExecution('debug','datain',datain);
-			
-			var responseLen = ResponseBody.length;
-			var ResponseBody_J = ResponseBody.substring(76,responseLen - 9);
-			nlapiLogExecution('debug','ResponseBody_J',ResponseBody_J);
-			var d = JSON.parse(ResponseBody_J);
-			
-			// var d = datain['d'];
-			// nlapiLogExecution("debug","d",JSON.parse(d));
-			// d = JSON.parse(d);
-			var endTime = d['EndTime'];
-			nlapiLogExecution("debug",'endTime',endTime);
-			// var endTime = SalesList[i]['BSD'];
-				var start = endTime.indexOf("(");
-				var end = endTime.indexOf(")");
-				var Temp1 = endTime.substr(start + 1, end - start - 1);
-				var Temp2 = parseInt(Temp1);
-				var Temp3 = new Date(Temp2);
-				nlapiLogExecution("debug",'Temp3',Temp3);
-			var now = GetDateKey(Temp3);
-			
-			var memberList = d['MbrList'];//MbrList
-			nlapiLogExecution("debug","JSON.stringifymemberList",JSON.stringify(memberList));
-			// nlapiLogExecution("debug","length",(memberList.length));
-			checkGovernance();
-			if(memberList)
-			{
-				for(var i = 0; i < memberList.length; i++)
-				{
-					nlapiLogExecution("debug","JSON.stringifymemberList - " + i,JSON.stringify(memberList[i]));
-					var ID = memberList[i]['ID'];
-					var CAID = memberList[i]['CAID'];
-					var SID = memberList[i]['SID'];
-					var N1L = memberList[i]['N1L'];
-					var N2L = memberList[i]['N2L'];
-					if (N2L == '' || N2L == 'null' || N2L == null)
-					{
-						N2L = '-';
-					}
-					var TL1 = memberList[i]['TL1'];
-					var TL2 = memberList[i]['TL2'];
-					var EM = memberList[i]['EM'];
-					var AD1L1 = memberList[i]['AD1L1'];
-					var AD1L2 = memberList[i]['AD1L2'];
-					var RE1L = memberList[i]['RE1L'];
-					var RE2L = memberList[i]['RE2L'];
-					var SDB = memberList[i]['SDB'];
-					var DJ = memberList[i]['DJ'];
-					var DL = memberList[i]['DL'];
-					var CAXP = memberList[i]['CAXP'];
-					var BPTS = memberList[i]['BPTS'][1];
-					var EX = memberList[i]['EX'];
-					var MC = memberList[i]['MC'];
-					var SGR = memberList[i]['SGR'];
-					
-					var start = SDB.indexOf("(");
-					var end = SDB.indexOf(")");
-					var Temp1 = SDB.substr(start + 1, end - start - 1);
-					var Temp2 = parseInt(Temp1);
-					var Temp3 = new Date(Temp2);
-					var SDB = GetDateKeyddmmyyyy(Temp3);
-					
-					var start = DJ.indexOf("(");
-					var end = DJ.indexOf(")");
-					var Temp1 = DJ.substr(start + 1, end - start - 1);
-					var Temp2 = parseInt(Temp1);
-					var Temp3 = new Date(Temp2);
-					var DJ = GetDateKeyddmmyyyy(Temp3);
-					
-					var start = DL.indexOf("(");
-					var end = DL.indexOf(")");
-					var Temp1 = DL.substr(start + 1, end - start - 1);
-					var Temp2 = parseInt(Temp1);
-					var Temp3 = new Date(Temp2);
-					var DL = GetDateKeyddmmyyyy(Temp3);
-					
-					var start = CAXP.indexOf("(");
-					var end = CAXP.indexOf(")");
-					var Temp1 = CAXP.substr(start + 1, end - start - 1);
-					var Temp2 = parseInt(Temp1);
-					var Temp3 = new Date(Temp2);
-					var CAXP = GetDateKeyddmmyyyy(Temp3);
-					
-					
-					var search = nlapiLoadSearch('customer', 'customsearch_frompos_iv');
-					checkGovernance();
-					var searchfilter = search.getFilters();
-					searchfilter[0] = new nlobjSearchFilter('custentityposid', null, 'is', ID);
-					search.setFilters(searchfilter);
-					var resultSet = search.runSearch();
-					checkGovernance();
-					var searchresults = resultSet.getResults(0,1);
-					nlapiLogExecution('debug', 'searchresults.length', searchresults.length);
-					if (searchresults.length > 0)
-					{
-						var customerid = searchresults[0].getId();	
-						nlapiLogExecution('debug', 'customerid', customerid);
-						var recCus = nlapiLoadRecord('customer',customerid);
-						checkGovernance();
-						// nlapiLogExecution('debug', 'isperson', recCus.getFieldValue('isperson'));
-					}
-					else
-					{
-						var recCus = nlapiCreateRecord('customer');
-						checkGovernance();
-						recCus.setFieldValue('isperson','T');
-						recCus.setFieldValue('lastname',N2L.substring(0, 32));
-						recCus.setFieldValue('firstname',N1L.substring(0, 32));
-                      recCus.setFieldValue('custentityposotherlang',N1L.substring(0, 32));
-                      
-						recCus.setFieldValue('category',2);
-						var memberSubCat = 1; //POS 1 = 10, 2 = 12, 3 = 11, 4 = 21, 5 = 22, 6 = 23
-						if (SGR == 2)
-						{
-							memberSubCat = 12;
-						}
-						else if (SGR == 3)
-						{
-							memberSubCat = 11;
-						}
-						else if (SGR == 4)
-						{
-							memberSubCat = 21;
-						}
-						else if (SGR == 5)
-						{
-							memberSubCat = 22;
-						}
-						else if (SGR == 6)
-						{
-							memberSubCat = 23;
-						}
-						else
-						{
-							memberSubCat = 10;
-						}
-						
-						var filters = new Array();
-						// filters[0] = new nlobjSearchFilter( 'custrecordcustomersubcatecate', null, 'anyOf', 2);
-						filters[0] = new nlobjSearchFilter( 'custrecordcustomersubcatposid', null, 'equalTo', SGR);
-						// filters[3] = new nlobjSearchFilter( 'quantityonhand', null, 'GREATERTHANOREQUALTO', lineQTY);
-						// filters[2] = new nlobjSearchFilter( 'location', null, 'anyOf', Locationid);
-						var columns = new Array();
-						columns[0] = new nlobjSearchColumn('internalid');
-						columns[1] = new nlobjSearchColumn('name');
-						columns[0].setSort(); 
-						var SubCatSearch = nlapiCreateSearch('customrecord_customer_sub_category', filters, columns);
-						checkGovernance();
-						var Error_Count = 0;
-						var SubCatSearchresultSet = SubCatSearch.runSearch();
-						checkGovernance();
-						var SubCatSearchresults = SubCatSearchresultSet.getResults(0,1);
-						nlapiLogExecution('debug', 'SubCatSearchresults.length', SubCatSearchresults.length);
-						
-						var SubCat = 10;
-						for ( var m = 0; SubCatSearchresults.length > 0 && SubCatSearchresults && m == 0 ; m++ )
-						{
-							nlapiLogExecution('debug', 'm', m);
-							var SubCatID = SubCatSearchresults[m].getId();
-							var ResultColumns = SubCatSearchresults[m].getAllColumns();
-							SubCat = SubCatSearchresults[m].getValue(ResultColumns[0]);
-							nlapiLogExecution('debug', 'SubCat', SubCat);
-						}
-						
-						
-						recCus.setFieldValue('category',2);
-						recCus.setFieldValue('custentity_customer_sub_category',SubCat);
-						// recCus.setFieldValue('custentity_customer_sub_category',memberSubCat);
-						recCus.setFieldValue('subsidiary',10);
-						recCus.setFieldValue('custentity_approve','T');	
-						recCus.setFieldValue('custentity_pending_complete','F');
-					}
-					recCus.setFieldValue('custentityposid',ID);
-					recCus.setFieldValue('custentityposcardid',CAID);
-					recCus.setFieldValue('custentitypostraveldocid',SID);
-					recCus.setFieldValue('custentityposcity',RE1L);
-					recCus.setFieldValue('custentityposphone',TL1);
-					recCus.setFieldValue('custentityposemail',EM);
-					recCus.setFieldValue('custentityposdob',SDB);
-					recCus.setFieldValue('custentityposdatejoin',DJ);
-					recCus.setFieldValue('custentityposdateleft',DL);
-					recCus.setFieldValue('custentityposexpirydate',CAXP);
-					recCus.setFieldValue('custentityloyaltypoint',BPTS);
-					recCus.setFieldValue('custentityposmemberexpired',EX);
-					recCus.setFieldValue('custentityposwechatid',SID);
-					recCus.setFieldValue('custentityposjson',JSON.stringify(memberList[i]));
-					
-					try
-					{
-						var newCustomerID = nlapiSubmitRecord(recCus);
-						checkGovernance();
-						nlapiLogExecution('debug', 'Customer Created /Updated', newCustomerID);
-					}
-					catch (err)
-					{
-						nlapiLogExecution('debug', 'Customer Not Created /Updated', ID);
-						// nlapiLogExecution('error', 'error Message: ' + err, JSON.stringify(SalesList[i]));
-					}
-					
-				}
-			}
-			nlapiSubmitField('customrecordintegrationlib',1,'custrecordintegrationlibdate',now);
-		}
-	}
-	nlapiLogExecution('emergency', 'END');
-}
-
 
 
 function Schedule_POS_Xact_GetSalesChanges_J()
@@ -296,14 +42,21 @@ function Schedule_POS_Xact_GetSalesChanges_J()
 	{
 		// GetDateKeyyyyymmddLastXDay(xx)
 		for(var h = 0; h <=23; h ++)
-		// for(var h = 20; h <=20; h ++)
+		// for(var h = 20; h <=23; h ++)
 		{
 			var lastSyncDateTime = GetDateKeyyyyymmddLastXDay(xx) + ' ' + initial0(h) + ':00:00';
 			var lastSyncDateTimeDateEnd = GetDateKeyyyyymmddLastXDay(xx) + ' ' + initial0(h) + ':59:59';
 			// ?vBeginTime=2019/03/29 11:30:00&vEndTime=2019/03/29 23:59:59
 			
-			// lastSyncDateTime = '2023/09/26' + ' ' + initial0(h) + ':00:00';
-			// lastSyncDateTimeDateEnd = '2023/09/26' + ' ' + initial0(h) + ':59:59';
+			lastSyncDateTime = '2024/02/09' + ' ' + initial0(h) + ':00:00';
+			lastSyncDateTimeDateEnd = '2024/02/09' + ' ' + initial0(h) + ':59:59';
+			
+			// lastSyncDateTime = '2024/02/09' + ' ' + initial0(h) + ':00:00';
+			// lastSyncDateTimeDateEnd = '2024/02/09' + ' ' + initial0(h) + ':30:59';
+			
+			// lastSyncDateTime = '2024/02/09' + ' ' + initial0(h) + ':31:00';
+			// lastSyncDateTimeDateEnd = '2024/02/09' + ' ' + initial0(h) + ':59:59';
+			
 			// vBeginTime:	
 			// 2020/01/17 13:40:00
 			// vEndTime:	
@@ -1824,6 +1577,262 @@ function Schedule_POS_Xact_GetSalesChanges_J()
 	checkGovernance();
 	nlapiLogExecution('debug', 'End');
 }
+
+/*
+function Schedule_POS_Member_GetChanges_J()
+{	
+	Logout();
+	var LoginRes = Login();
+	nlapiLogExecution("debug","LoginRes",LoginRes);
+	// CheckError();
+	
+	//Product_AddNew_J
+	// var url = "http://ieh.softether.net:8888/erunapi/api.asmx/Member_GetChanges_J";
+	var url = "https://ithpos.app/erunapi/api.asmx/Member_GetChanges_J";
+	
+	// var url = "https://eruntestapi.free.beeceptor.com/api.asmx/Member_GetChanges_J";
+	// var header = {"Content-Type": "application/json"};
+	var header = {"Content-Type": "application/x-www-form-urlencoded","cookie": LoginRes};
+
+	var requestBody = {};
+	
+	var lastSyncDateTime = nlapiLookupField('customrecordintegrationlib',1,'custrecordintegrationlibdate');
+    for (var xx = 2; xx >= 0; xx--) 
+	{	
+		// var lastSyncDateTime = nlapiLookupField('customrecordintegrationlib',1,'custrecordintegrationlibdate');
+		var lastSyncDateTime = GetDateKeyyyyymmddLastXDay(xx) + ' 00:00:01';
+		var lastSyncDateTimeDateEnd = GetDateKeyyyyymmddLastXDay(xx - 1) + ' 23:59:00';
+		
+		
+		var today = new Date();
+		var now = GetDateKey(today);
+		// nlapiLogExecution("debug","now",now);
+		var endtime = GetDateKeyDateEnd(lastSyncDateTime);
+		var starttime = GetDateKeyDateStart(lastSyncDateTime);
+		// requestBody.vBeginTime = lastSyncDateTime;
+		var requestBody = 'vBeginTime=' + lastSyncDateTime + '&vEndTime=' + lastSyncDateTimeDateEnd;
+		//
+		nlapiLogExecution("audit","requestBody.vBeginTime",lastSyncDateTime);
+		nlapiLogExecution("audit","requestBodyJSON",JSON.stringify(requestBody));
+		nlapiLogExecution("audit","requestBody",requestBody);
+		// var response = nlapiRequestURL(url,JSON.stringify(requestBody),header,'POST');
+		var response = nlapiRequestURL(url,requestBody,header,'POST');
+		// var response = nlapiRequestURL(url,JSON.stringify(requestBody),header,'POST');
+		var ResponseBody = response.getBody();
+		nlapiLogExecution("debug","ResponseBody",(ResponseBody));
+		
+		
+		
+		if (ResponseBody != '{"d":""}')
+		{
+			// datain = JSON.parse(ResponseBody);
+			// nlapiLogExecution('debug','datain',datain);
+			
+			var responseLen = ResponseBody.length;
+			var ResponseBody_J = ResponseBody.substring(76,responseLen - 9);
+			nlapiLogExecution('debug','ResponseBody_J',ResponseBody_J);
+			var d = JSON.parse(ResponseBody_J);
+			
+			// var d = datain['d'];
+			// nlapiLogExecution("debug","d",JSON.parse(d));
+			// d = JSON.parse(d);
+			var endTime = d['EndTime'];
+			nlapiLogExecution("debug",'endTime',endTime);
+			// var endTime = SalesList[i]['BSD'];
+				var start = endTime.indexOf("(");
+				var end = endTime.indexOf(")");
+				var Temp1 = endTime.substr(start + 1, end - start - 1);
+				var Temp2 = parseInt(Temp1);
+				var Temp3 = new Date(Temp2);
+				nlapiLogExecution("debug",'Temp3',Temp3);
+			var now = GetDateKey(Temp3);
+			
+			var memberList = d['MbrList'];//MbrList
+			nlapiLogExecution("debug","JSON.stringifymemberList",JSON.stringify(memberList));
+			// nlapiLogExecution("debug","length",(memberList.length));
+			checkGovernance();
+			if(memberList)
+			{
+				for(var i = 0; i < memberList.length; i++)
+				{
+					nlapiLogExecution("debug","JSON.stringifymemberList - " + i,JSON.stringify(memberList[i]));
+					var ID = memberList[i]['ID'];
+					var CAID = memberList[i]['CAID'];
+					var SID = memberList[i]['SID'];
+					var N1L = memberList[i]['N1L'];
+					var N2L = memberList[i]['N2L'];
+					if (N2L == '' || N2L == 'null' || N2L == null)
+					{
+						N2L = '-';
+					}
+					var TL1 = memberList[i]['TL1'];
+					var TL2 = memberList[i]['TL2'];
+					var EM = memberList[i]['EM'];
+					var AD1L1 = memberList[i]['AD1L1'];
+					var AD1L2 = memberList[i]['AD1L2'];
+					var RE1L = memberList[i]['RE1L'];
+					var RE2L = memberList[i]['RE2L'];
+					var SDB = memberList[i]['SDB'];
+					var DJ = memberList[i]['DJ'];
+					var DL = memberList[i]['DL'];
+					var CAXP = memberList[i]['CAXP'];
+					var BPTS = memberList[i]['BPTS'][1];
+					var EX = memberList[i]['EX'];
+					var MC = memberList[i]['MC'];
+					var SGR = memberList[i]['SGR'];
+					
+					var start = SDB.indexOf("(");
+					var end = SDB.indexOf(")");
+					var Temp1 = SDB.substr(start + 1, end - start - 1);
+					var Temp2 = parseInt(Temp1);
+					var Temp3 = new Date(Temp2);
+					var SDB = GetDateKeyddmmyyyy(Temp3);
+					
+					var start = DJ.indexOf("(");
+					var end = DJ.indexOf(")");
+					var Temp1 = DJ.substr(start + 1, end - start - 1);
+					var Temp2 = parseInt(Temp1);
+					var Temp3 = new Date(Temp2);
+					var DJ = GetDateKeyddmmyyyy(Temp3);
+					
+					var start = DL.indexOf("(");
+					var end = DL.indexOf(")");
+					var Temp1 = DL.substr(start + 1, end - start - 1);
+					var Temp2 = parseInt(Temp1);
+					var Temp3 = new Date(Temp2);
+					var DL = GetDateKeyddmmyyyy(Temp3);
+					
+					var start = CAXP.indexOf("(");
+					var end = CAXP.indexOf(")");
+					var Temp1 = CAXP.substr(start + 1, end - start - 1);
+					var Temp2 = parseInt(Temp1);
+					var Temp3 = new Date(Temp2);
+					var CAXP = GetDateKeyddmmyyyy(Temp3);
+					
+					
+					var search = nlapiLoadSearch('customer', 'customsearch_frompos_iv');
+					checkGovernance();
+					var searchfilter = search.getFilters();
+					searchfilter[0] = new nlobjSearchFilter('custentityposid', null, 'is', ID);
+					search.setFilters(searchfilter);
+					var resultSet = search.runSearch();
+					checkGovernance();
+					var searchresults = resultSet.getResults(0,1);
+					nlapiLogExecution('debug', 'searchresults.length', searchresults.length);
+					if (searchresults.length > 0)
+					{
+						var customerid = searchresults[0].getId();	
+						nlapiLogExecution('debug', 'customerid', customerid);
+						var recCus = nlapiLoadRecord('customer',customerid);
+						checkGovernance();
+						// nlapiLogExecution('debug', 'isperson', recCus.getFieldValue('isperson'));
+					}
+					else
+					{
+						var recCus = nlapiCreateRecord('customer');
+						checkGovernance();
+						recCus.setFieldValue('isperson','T');
+						recCus.setFieldValue('lastname',N2L.substring(0, 32));
+						recCus.setFieldValue('firstname',N1L.substring(0, 32));
+                      recCus.setFieldValue('custentityposotherlang',N1L.substring(0, 32));
+                      
+						recCus.setFieldValue('category',2);
+						var memberSubCat = 1; //POS 1 = 10, 2 = 12, 3 = 11, 4 = 21, 5 = 22, 6 = 23
+						if (SGR == 2)
+						{
+							memberSubCat = 12;
+						}
+						else if (SGR == 3)
+						{
+							memberSubCat = 11;
+						}
+						else if (SGR == 4)
+						{
+							memberSubCat = 21;
+						}
+						else if (SGR == 5)
+						{
+							memberSubCat = 22;
+						}
+						else if (SGR == 6)
+						{
+							memberSubCat = 23;
+						}
+						else
+						{
+							memberSubCat = 10;
+						}
+						
+						var filters = new Array();
+						// filters[0] = new nlobjSearchFilter( 'custrecordcustomersubcatecate', null, 'anyOf', 2);
+						filters[0] = new nlobjSearchFilter( 'custrecordcustomersubcatposid', null, 'equalTo', SGR);
+						// filters[3] = new nlobjSearchFilter( 'quantityonhand', null, 'GREATERTHANOREQUALTO', lineQTY);
+						// filters[2] = new nlobjSearchFilter( 'location', null, 'anyOf', Locationid);
+						var columns = new Array();
+						columns[0] = new nlobjSearchColumn('internalid');
+						columns[1] = new nlobjSearchColumn('name');
+						columns[0].setSort(); 
+						var SubCatSearch = nlapiCreateSearch('customrecord_customer_sub_category', filters, columns);
+						checkGovernance();
+						var Error_Count = 0;
+						var SubCatSearchresultSet = SubCatSearch.runSearch();
+						checkGovernance();
+						var SubCatSearchresults = SubCatSearchresultSet.getResults(0,1);
+						nlapiLogExecution('debug', 'SubCatSearchresults.length', SubCatSearchresults.length);
+						
+						var SubCat = 10;
+						for ( var m = 0; SubCatSearchresults.length > 0 && SubCatSearchresults && m == 0 ; m++ )
+						{
+							nlapiLogExecution('debug', 'm', m);
+							var SubCatID = SubCatSearchresults[m].getId();
+							var ResultColumns = SubCatSearchresults[m].getAllColumns();
+							SubCat = SubCatSearchresults[m].getValue(ResultColumns[0]);
+							nlapiLogExecution('debug', 'SubCat', SubCat);
+						}
+						
+						
+						recCus.setFieldValue('category',2);
+						recCus.setFieldValue('custentity_customer_sub_category',SubCat);
+						// recCus.setFieldValue('custentity_customer_sub_category',memberSubCat);
+						recCus.setFieldValue('subsidiary',10);
+						recCus.setFieldValue('custentity_approve','T');	
+						recCus.setFieldValue('custentity_pending_complete','F');
+					}
+					recCus.setFieldValue('custentityposid',ID);
+					recCus.setFieldValue('custentityposcardid',CAID);
+					recCus.setFieldValue('custentitypostraveldocid',SID);
+					recCus.setFieldValue('custentityposcity',RE1L);
+					recCus.setFieldValue('custentityposphone',TL1);
+					recCus.setFieldValue('custentityposemail',EM);
+					recCus.setFieldValue('custentityposdob',SDB);
+					recCus.setFieldValue('custentityposdatejoin',DJ);
+					recCus.setFieldValue('custentityposdateleft',DL);
+					recCus.setFieldValue('custentityposexpirydate',CAXP);
+					recCus.setFieldValue('custentityloyaltypoint',BPTS);
+					recCus.setFieldValue('custentityposmemberexpired',EX);
+					recCus.setFieldValue('custentityposwechatid',SID);
+					recCus.setFieldValue('custentityposjson',JSON.stringify(memberList[i]));
+					
+					try
+					{
+						var newCustomerID = nlapiSubmitRecord(recCus);
+						checkGovernance();
+						nlapiLogExecution('debug', 'Customer Created /Updated', newCustomerID);
+					}
+					catch (err)
+					{
+						nlapiLogExecution('debug', 'Customer Not Created /Updated', ID);
+						// nlapiLogExecution('error', 'error Message: ' + err, JSON.stringify(SalesList[i]));
+					}
+					
+				}
+			}
+			nlapiSubmitField('customrecordintegrationlib',1,'custrecordintegrationlibdate',now);
+		}
+	}
+	nlapiLogExecution('emergency', 'END');
+}
+*/
 
 function CheckError()
 {
