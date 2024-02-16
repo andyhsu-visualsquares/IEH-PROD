@@ -94,23 +94,29 @@ define(['N/record', 'N/https', 'N/url', 'N/error', 'N/log', 'N/search', 'N/confi
                     // 20231020 Sam reset related payments customers
                     for (let i = 0; i < payment_ids.length; i++) {
                         // record.submitFields({ type: "customerpayment", id: payment_ids[i], values: { customer : tranCustomer } })
-                        let paymentRec = record.load({ type: 'customerpayment', id: payment_ids[i], isDynamic: true })
-                        const payment_account_id = paymentRec.getValue('account')
-                        paymentRec.setValue(
-                            'aracct',
-                            paymentRec.getValue('aracct') || config.load('accountingpreferences').getValue('ARACCOUNT')
-                        )
-                        paymentRec.setValue('customer', tranCustomer)
-                        paymentRec.setValue('account', payment_account_id)
-                        let related_invoice_id = newRecord.id
-                        let related_invoice_index = paymentRec.findSublistLineWithValue({
-                            sublistId: 'apply',
-                            fieldId: 'internalid',
-                            value: related_invoice_id,
-                        })
-                        paymentRec.selectLine({ sublistId: 'apply', line: related_invoice_index })
-                        paymentRec.setCurrentSublistValue({ sublistId: 'apply', fieldId: 'apply', value: true })
-                        paymentRec.paymentRec.save()
+                        try {
+                            let paymentRec = record.load({ type: 'customerpayment', id: payment_ids[i], isDynamic: true })
+                            const payment_account_id = paymentRec.getValue('account')
+                            paymentRec.setValue(
+                                'aracct',
+                                paymentRec.getValue('aracct') || config.load('accountingpreferences').getValue('ARACCOUNT')
+                            )
+                            paymentRec.setValue('customer', tranCustomer)
+                            paymentRec.setValue('account', payment_account_id)
+                            let related_invoice_id = newRecord.id
+                            let related_invoice_index = paymentRec.findSublistLineWithValue({
+                                sublistId: 'apply',
+                                fieldId: 'internalid',
+                                value: related_invoice_id,
+                            })
+                            paymentRec.selectLine({ sublistId: 'apply', line: related_invoice_index })
+                            paymentRec.setCurrentSublistValue({ sublistId: 'apply', fieldId: 'apply', value: true })
+                            paymentRec.paymentRec.save()
+                        } catch (error) {
+                            log.error('error', error);
+                            log.error('error stack', error.stack);
+
+                        }
                     }
                 }
             }
